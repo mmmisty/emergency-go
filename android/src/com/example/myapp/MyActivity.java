@@ -2,10 +2,13 @@ package com.example.myapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -36,6 +39,7 @@ import java.util.concurrent.ExecutionException;
 
 public class MyActivity extends Activity implements
         GoogleMap.OnMyLocationChangeListener {
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private GoogleMap gMap;
     private LocationManager locationMgr;
     private String provider;
@@ -51,7 +55,11 @@ public class MyActivity extends Activity implements
 
         gMap.setOnMyLocationChangeListener(this);
 
-
+        if (checkPlayServices()) {
+            // Start IntentService to register this application with GCM.
+            Intent intent = new Intent(this, RegistrationIntentService.class);
+            startService(intent);
+        }
     }
 
     @Override
@@ -165,6 +173,21 @@ public class MyActivity extends Activity implements
         LatLng l = new LatLng(point.getLatitude(), point.getLongitude());
         m.position(l).title("Emergency!");
         gMap.addMarker(m);
+    }
+
+    private boolean checkPlayServices() {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                        .show();
+            } else {
+                finish();
+            }
+            return false;
+        }
+        return true;
     }
 
 }

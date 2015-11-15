@@ -18,7 +18,13 @@ public class Main {
             System.exit(1);
         }
 
-        App app = new App(config);
+        App app = null;
+        try {
+            app = new App(config);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
 
         app.Run();  // run forever
     }

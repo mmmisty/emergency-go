@@ -36,6 +36,16 @@ public class App {
                     break;
                 }
 
+                String[] ss = s.split(" ");
+                switch (ss[0]) {
+                    case "send":
+                        if (ss.length <= 1) {
+                            System.out.println("invalid arg");
+                        }
+                        _server.SendToAll("Emergency", ss[1]);
+                    default:
+                        System.out.println("invalid cmd");
+                }
                 //TODO process
 
             } catch (IOException e) {

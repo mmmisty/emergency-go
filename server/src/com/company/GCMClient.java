@@ -31,8 +31,10 @@ public class GCMClient {
         // build json object
         JSONObject notification = new JSONObject();
         notification.put("title", title);
-        notification.put("icon", "myicon");
+        notification.put("icon", "ic_launcher");
         notification.put("body", message);
+        notification.put("sound", "default");
+        notification.put("click_action", "OPEN_ACTIVITY_1");
 
         JSONObject msg = new JSONObject();
         msg.put("to", toDevice);

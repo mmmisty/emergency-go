@@ -45,6 +45,19 @@ public class Server {
         _server.stop(0);
     }
 
+    public int SendToAll(String title, String message) {
+        int failed = 0;
+        for (String token: _tokens.values()) {
+            try {
+                _gcm.sendMessage(token, title, message);
+            } catch (Exception e) {
+                e.printStackTrace();
+                failed += 1;
+            }
+        }
+        return failed;
+    }
+
     private void RegisterHandlers() {
         _server.createContext("/", new IndexHandler());
         _server.createContext("/register", new GcmRegisterHandler());
@@ -69,7 +82,7 @@ public class Server {
             _tokens.put(user, token);
             GCMClient.Result result = null;
             try {
-                 result = _gcm.sendMessage(token, "register ok", "okokokokok");
+                 result = _gcm.sendMessage(token, "register ok", "ok");
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -59,6 +59,8 @@ public class MyActivity extends Activity implements
             // Start IntentService to register this application with GCM.
             Intent intent = new Intent(this, RegistrationIntentService.class);
             startService(intent);
+        } else {
+            System.out.println("Warning: checkPlayServices() is failed.");
         }
     }
 

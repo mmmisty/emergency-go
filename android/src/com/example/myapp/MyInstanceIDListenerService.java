@@ -1,6 +1,5 @@
 package com.example.myapp;
 
-import com.google.android.gms.iid.InstanceID;
 import com.google.android.gms.iid.InstanceIDListenerService;
 import android.content.Intent;
 

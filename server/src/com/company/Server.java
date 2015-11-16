@@ -11,25 +11,37 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class Server {
 
+    private Properties _config;
     private int _port;
     private HttpServer _server;
+    private Map<String, String> _tokens;
+    private GCMClient _gcm;
 
 
-    public Server(int port) throws IOException {
-        _port = port;
+    public Server(Properties config) throws IOException {
+        _config = config;
+
+        _port = Integer.parseInt(_config.getProperty("port"));
+        _gcm = new GCMClient(_config.getProperty("api_key"));
+
         _server = HttpServer.create(new InetSocketAddress(_port), 0);
         _server.setExecutor(null);
+        _tokens = new HashMap<>();
+
         RegisterHandlers();
     }
 
     public void Start() {
         _server.start();
+        System.out.println("Server started " + _port);
     }
 
     public void Stop() {
+        System.out.println("Server stoped");
         _server.stop(0);
     }
 
@@ -51,14 +63,19 @@ public class Server {
                 Server.response(h, 400, "missing param 'token'");
                 return;
             }
-            if (user.equals("")) {
-                Server.response(h, 400, "missing param 'user'");
-                return;
-            }
 
             System.out.println("Register token: " + user + " " + token);
 
-            //TODO
+            _tokens.put(user, token);
+            GCMClient.Result result = null;
+            try {
+                 result = _gcm.sendMessage(token, "register ok", "okokokokok");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (result != null) {
+                System.out.println("result " + result.Code + " " + result.RawBody);
+            }
 
             Server.response(h, 200, "ok");
         }

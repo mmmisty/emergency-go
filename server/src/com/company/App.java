@@ -17,16 +17,13 @@ public class App {
     }
 
     public void Run() {
-
-        int port = Integer.parseInt(_config.getProperty("port"));
         try {
-            _server = new Server(port);
+            _server = new Server(_config);
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
         _server.Start();
-        System.out.println("Server started " + port);
 
         while (true) {
             // TODO read and process command here

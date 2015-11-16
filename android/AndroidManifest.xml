@@ -5,7 +5,7 @@
           android:versionName="1.0">
     <uses-sdk android:minSdkVersion="21"/>
 
-    <permission android:name="com.example.myapp" android:protectionLevel="signature"/>
+    <!--<permission android:name="com.example.myapp" android:protectionLevel="signature"/>-->
     <permission android:name="com.example.myapp.permission.C2D_MESSAGE" android:protectionLevel="signature"/>
     <uses-permission android:name="com.example.myapp.permission.C2D_MESSAGE"/>
 
@@ -55,5 +55,8 @@
                 <action android:name="com.google.android.gms.iid.InstanceID"/>
             </intent-filter>
         </service>
+        <service
+                android:name="com.example.myapp.RegistrationIntentService"
+                android:exported="false" />
     </application>
 </manifest>

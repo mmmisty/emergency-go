@@ -7,6 +7,11 @@ import android.preference.PreferenceManager;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 import android.support.v4.content.LocalBroadcastManager;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +28,22 @@ public class RegistrationIntentService extends IntentService {
     }
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+//        onHandleIntent(null);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        int re = super.onStartCommand(intent, flags, startId);
+//        onHandleIntent(intent);
+        return re;
+    }
+
+    @Override
     protected void onHandleIntent(Intent intent) {
+        System.out.println("------------onHandleIntent---------------");
+
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
 
         try {
@@ -40,6 +60,8 @@ public class RegistrationIntentService extends IntentService {
         }catch (Exception e) {
             e.printStackTrace();
 
+            System.out.println("-------------Exception--------------");
+            System.out.println(e.getMessage());
             pref.edit().putBoolean("SENT_TOKEN", false).apply();
         }
 
@@ -49,7 +71,7 @@ public class RegistrationIntentService extends IntentService {
     }
 
     private void sendRegistrationToServer(String token) {
-        String url = "http://192.168.0.110/register?" + "token=" + token + "$user=" + "me";
+        String url = "http://192.168.0.110:8080/register?" + "token=" + token + "$user=" + "me";
         try {
             String result = httpGet(url);
             System.out.println("Register result: " + result);
@@ -59,24 +81,30 @@ public class RegistrationIntentService extends IntentService {
     }
 
     private String httpGet(String url) throws IOException {
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+//        URL obj = new URL(url);
+//        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+//        StringBuffer response = new StringBuffer();
 
-        // optional default is GET
-        con.setRequestMethod("GET");
+        HttpGet get = new HttpGet(url);
+        HttpClient client = new DefaultHttpClient();
+        String responseString = null;
 
-//        int responseCode = con.getResponseCode();
+        try {
+            HttpResponse response = client.execute(get);
+            int statusCode = response.getStatusLine().getStatusCode();
+//            System.out.println("--------------------response:" + response + "      status:" + status);
+            if (statusCode == 200) {
+                responseString = EntityUtils.toString(response.getEntity());
+//                System.out.println("---------------responseString:" + responseString);
+                return responseString;
+            }
 
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+        }catch (Exception e){
+            System.out.println("----------------");
+            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
-        in.close();
 
-        return response.toString();
+        return responseString;
     }
 }

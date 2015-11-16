@@ -32,6 +32,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <intent-filter>
+            <action android:name="OPEN_ACTIVITY_1" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+
         <receiver
                 android:name="com.google.android.gms.gcm.GcmReceiver"
                 android:exported="true"
@@ -41,6 +47,7 @@
                 <category android:name="com.example.myapp"/>
             </intent-filter>
         </receiver>
+
         <service
                 android:name="com.example.myapp.MyGcmListenerService"
                 android:exported="false" >

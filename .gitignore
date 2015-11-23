@@ -3,3 +3,4 @@
 /server/.idea/workspace.xml
 /android/out
 /server/out
+*.class

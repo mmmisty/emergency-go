@@ -1,8 +1,6 @@
 package com.company;
 
 import org.json.JSONObject;
-import org.json.JSONWriter;
-import sun.net.www.http.HttpClient;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;

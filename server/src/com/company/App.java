@@ -62,6 +62,6 @@ public class App {
 //            }
 //        }
 
-        _server.Stop();
+        //_server.Stop();
     }
 }

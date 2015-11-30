@@ -34,9 +34,21 @@ public class GCMClient {
         notification.put("sound", "default");
         notification.put("click_action", "OPEN_ACTIVITY_1");
 
+//        notification.put("latitude", 41.8916241);
+//        notification.put("longitude", -87.6094798);
+
         JSONObject msg = new JSONObject();
         msg.put("to", toDevice);
         msg.put("notification", notification);
+
+        String[] args = message.split(" ");
+        if (args.length > 1) {
+            JSONObject coordinate = new JSONObject();
+            coordinate.put("target", args[0]);
+            coordinate.put("latitude", args[1]);
+            coordinate.put("longitude", args[2]);
+            msg.put("data", coordinate);
+        }
         System.out.println("sendMessage json " + msg.toString());
 
         // write request body

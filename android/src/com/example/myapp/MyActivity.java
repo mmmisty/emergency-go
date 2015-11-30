@@ -1,9 +1,7 @@
 package com.example.myapp;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -45,9 +43,12 @@ import java.util.concurrent.ExecutionException;
 public class MyActivity extends Activity implements
         GoogleMap.OnMyLocationChangeListener {
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private GoogleMap gMap;
-    private LocationManager locationMgr;
-    private String provider;
+    private GoogleMap _gMap;
+    private LocationManager _locationMgr;
+    private String _provider;
+    private Location _destination = null;
+
+    public static final String RECEIVE_COORDINATE = "com.example.myapp.RECEIVE_COORDINATE";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,10 +56,10 @@ public class MyActivity extends Activity implements
         setContentView(R.layout.main);
 
         MapFragment map = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
-        gMap = map.getMap();
-        gMap.setMyLocationEnabled(true);
+        _gMap = map.getMap();
+        _gMap.setMyLocationEnabled(true);
 
-        gMap.setOnMyLocationChangeListener(this);
+        _gMap.setOnMyLocationChangeListener(this);
 
         System.out.println("------------------onCreate----------------------");
         if (checkPlayServices()) {
@@ -68,6 +69,11 @@ public class MyActivity extends Activity implements
         } else {
             System.out.println("Warning: checkPlayServices() is failed.");
         }
+
+        LocalBroadcastManager bManager = LocalBroadcastManager.getInstance(this);
+        IntentFilter filer = new IntentFilter();
+        filer.addAction(RECEIVE_COORDINATE);
+        bManager.registerReceiver(receivingCoordinate, filer);
     }
 
     @Override
@@ -75,7 +81,7 @@ public class MyActivity extends Activity implements
         if (lo == null) {
             return;
         }
-        Location location = locationMgr.getLastKnownLocation(provider);
+        Location location = _locationMgr.getLastKnownLocation(_provider);
         updateWithNewLocation(location);
     }
 
@@ -84,29 +90,49 @@ public class MyActivity extends Activity implements
     protected void onStart() {
         super.onStart();
         initLocationProvider();
-        Location begin = locationMgr.getLastKnownLocation(provider);
-        Location end = new Location("destination");
-        end.setLatitude(41.8916241);
-        end.setLongitude(-87.6094798);
+        Location begin = _locationMgr.getLastKnownLocation(_provider);
+
+//        Location end = new Location("destination");
+//        end.setLatitude(41.8916241);
+//        end.setLongitude(-87.6094798);
 
         updateWithNewLocation(begin);
-        DrawPath(begin, end);
-        DrawMark(end);
+
+        if (_destination != null) {
+            DrawPath(begin, _destination);
+            DrawMark(_destination);
+        }
 
 //        System.out.println("------------------" + json);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        initLocationProvider();
+        Location begin = _locationMgr.getLastKnownLocation(_provider);
+
+        updateWithNewLocation(begin);
+
+        if (_destination != null) {
+            DrawPath(begin, _destination);
+            DrawMark(_destination);
+        }
+
+    }
+
     private boolean initLocationProvider() {
-        locationMgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        _locationMgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // wifi
-        if (locationMgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            provider = LocationManager.NETWORK_PROVIDER;
+        if (_locationMgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            _provider = LocationManager.NETWORK_PROVIDER;
             return true;
         }
 
         // GPS
-        if (locationMgr.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            provider = LocationManager.GPS_PROVIDER;
+        if (_locationMgr.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            _provider = LocationManager.GPS_PROVIDER;
             return true;
         }
 
@@ -126,7 +152,7 @@ public class MyActivity extends Activity implements
                 .zoom(15)
                 .build();
 
-        gMap.animateCamera(CameraUpdateFactory.newCameraPosition(camPosition));
+        _gMap.animateCamera(CameraUpdateFactory.newCameraPosition(camPosition));
     }
 
     private void DrawPath(Location begin, Location end) {
@@ -163,7 +189,7 @@ public class MyActivity extends Activity implements
                 }
 
                 // Drawing polyline in the Google Map for the i-th route
-                gMap.addPolyline(lineOptions);
+                _gMap.addPolyline(lineOptions);
             }
         }catch (InterruptedException e) {
 //            e.printStackTrace();
@@ -180,7 +206,7 @@ public class MyActivity extends Activity implements
         MarkerOptions m = new MarkerOptions();
         LatLng l = new LatLng(point.getLatitude(), point.getLongitude());
         m.position(l).title("Emergency!");
-        gMap.addMarker(m);
+        _gMap.addMarker(m);
     }
 
     private boolean checkPlayServices() {
@@ -197,5 +223,30 @@ public class MyActivity extends Activity implements
         }
         return true;
     }
+
+    private BroadcastReceiver receivingCoordinate = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(RECEIVE_COORDINATE)) {
+                Bundle data = intent.getExtras();
+//                double lat = data.getDouble("latitude");
+//                double lon = data.getDouble("longitude");
+                String lat = data.getString("latitude");
+                String lon = data.getString("longitude");
+                System.out.println("-----------------lat:" + lat + ",lon:" + lon);
+
+                Location begin = _locationMgr.getLastKnownLocation(_provider);
+
+                _destination = new Location("destination");
+                _destination.setLatitude(Double.parseDouble(lat));
+                _destination.setLongitude(Double.parseDouble(lon));
+
+                updateWithNewLocation(begin);
+                DrawPath(begin, _destination);
+                DrawMark(_destination);
+            }
+        }
+    };
 
 }

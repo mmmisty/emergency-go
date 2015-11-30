@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -61,10 +62,10 @@ public class Server {
     private void RegisterHandlers() {
         _server.createContext("/", new IndexHandler());
         _server.createContext("/register", new GcmRegisterHandler());
+        _server.createContext("/send", new CoordinateHandler());
     }
 
-    /////////////////////////////////////////////////////////////////////
-    // handlers
+    // Handlers
 
     private class GcmRegisterHandler implements HttpHandler {
         @Override
@@ -81,11 +82,11 @@ public class Server {
 
             _tokens.put(user, token);
             GCMClient.Result result = null;
-            try {
-                 result = _gcm.sendMessage(token, "register ok", "ok");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            try {
+//                 result = _gcm.sendMessage(token, "register ok", "ok");
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
             if (result != null) {
                 System.out.println("result " + result.Code + " " + result.RawBody);
             }
@@ -94,11 +95,33 @@ public class Server {
         }
     }
 
+    private class CoordinateHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange h) throws IOException {
+            Map<String, String> params = Server.getURLParams(h);
+            String target = params.get("target");
+            String coordinates = params.get("coordinate");
+            try {
+                String[] coor = coordinates.split(",");
+                Double lat = Double.parseDouble(coor[0]);
+                Double lon = Double.parseDouble(coor[1]);
+
+                SendToAll("Emergency", target + " " + lat + " " + lon);
+
+                Server.response(h, 200, "OK");
+            } catch (NumberFormatException e) {
+                Server.response(h, 400, "Invalid coordinate");
+            }
+
+        }
+    }
+
     private class EmergencyHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange h) throws IOException {
 
-            Server.response(h, 200, "ok");
+            Server.response(h, 200, "OK");
         }
     }
 

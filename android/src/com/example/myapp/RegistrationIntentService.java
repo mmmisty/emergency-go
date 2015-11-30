@@ -71,7 +71,8 @@ public class RegistrationIntentService extends IntentService {
     }
 
     private void sendRegistrationToServer(String token) {
-        String url = "http://192.168.0.110:8080/register?" + "token=" + token + "&user=" + "me";
+        // 52.10.102.202
+        String url = "http://52.26.66.209:8080/register?" + "token=" + token + "&user=" + "me";
         try {
             String result = httpGet(url);
             System.out.println("Register result: " + result);
